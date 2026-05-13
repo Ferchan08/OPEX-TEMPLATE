@@ -1,0 +1,50 @@
+name: Fill OpEx Charter
+
+on:
+  push:
+    paths:
+      - "data.json"          # triggers whenever data.json changes
+  workflow_dispatch:         # also allow manual trigger from GitHub UI
+
+jobs:
+  fill-template:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: pip install lxml
+
+      # 4. Run the fill script
+      - name: Fill PPTX template
+        run: |
+          python fill_opex_template.py \
+            --json data.json \
+            --template template.pptx \
+            --output filled_charter.pptx
+
+      # 5. Upload the filled PPTX as a downloadable artifact
+      - name: Upload filled charter
+        uses: actions/upload-artifact@v4
+        with:
+          name: filled-opex-charter
+          path: filled_charter.pptx
+          retention-days: 30
+
+      # 6. (Optional) Commit the output back to the repo
+      #    Uncomment if you want the filled PPTX stored in the repo.
+      # - name: Commit filled charter back to repo
+      #   uses: stefanzweifel/git-auto-commit-action@v5
+      #   with:
+      #     commit_message: "chore: auto-fill OpEx charter [skip ci]"
+      #     file_pattern: filled_charter.pptx
